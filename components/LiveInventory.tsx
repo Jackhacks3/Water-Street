@@ -20,8 +20,9 @@ interface SeafoodItem {
 
 export default function LiveInventory() {
   const [inventory, setInventory] = useState<SeafoodItem[]>([])
-  const [lastUpdate, setLastUpdate] = useState(new Date())
+  const [lastUpdate, setLastUpdate] = useState<Date | null>(null)
   const [isLive, setIsLive] = useState(true)
+  const [isMounted, setIsMounted] = useState(false)
 
   const initialInventory: SeafoodItem[] = [
     {
@@ -111,7 +112,9 @@ export default function LiveInventory() {
   ]
 
   useEffect(() => {
+    setIsMounted(true)
     setInventory(initialInventory)
+    setLastUpdate(new Date()) // Initialize lastUpdate only on client-side
 
     // Simulate real-time updates
     const interval = setInterval(() => {
@@ -200,7 +203,7 @@ export default function LiveInventory() {
             <span className="text-sm text-gray-600">{isLive ? 'Live' : 'Offline'}</span>
           </div>
           <div className="text-sm text-gray-500">
-            Last updated: {lastUpdate.toLocaleTimeString()}
+            Last updated: {isMounted ? lastUpdate?.toLocaleTimeString() : '--:--:--'}
           </div>
         </div>
       </div>

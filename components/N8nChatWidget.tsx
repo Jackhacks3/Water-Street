@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import '@n8n/chat/style.css'
 import { createChat } from '@n8n/chat'
 
@@ -18,22 +18,67 @@ declare global {
 export default function N8nChatWidget({ 
   webhookUrl = 'https://jgewirz.app.n8n.cloud/webhook/a0032740-26d8-491b-93f9-2250906d0e17'
 }: N8nChatWidgetProps) {
+  const [chatError, setChatError] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
   
   useEffect(() => {
+    // Test webhook connectivity first
+    const testWebhook = async () => {
+      try {
+        console.log('Testing webhook connectivity to:', webhookUrl)
+        
+        const response = await fetch(webhookUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            chatInput: 'test connection',
+            sessionId: 'test-session'
+          })
+        })
+        
+        console.log('Webhook test response status:', response.status)
+        
+        if (!response.ok) {
+          throw new Error(`Webhook returned ${response.status}: ${response.statusText}`)
+        }
+        
+        const data = await response.text()
+        console.log('Webhook test response:', data)
+        
+        // If webhook test passes, initialize chat
+        initializeN8nChat()
+        
+      } catch (error) {
+        console.error('Webhook test failed:', error)
+        setChatError(`Webhook connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
+        showFallbackChat()
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
     // Function to initialize n8n chat
     const initializeN8nChat = () => {
       try {
+        console.log('Initializing n8n chat with webhook:', webhookUrl)
+        
         createChat({
-          webhookUrl: webhookUrl.trim(), // Remove any trailing whitespace/newlines
+          webhookUrl: webhookUrl.trim(),
           webhookConfig: {
             method: 'POST',
-            headers: {}
+            headers: {
+              'Content-Type': 'application/json'
+            }
           },
           target: '#n8n-chat',
           mode: 'window',
           chatInputKey: 'chatInput',
           chatSessionKey: 'sessionId',
-          metadata: {},
+          metadata: {
+            source: 'water-street-seafood'
+          },
           showWelcomeScreen: true,
           defaultLanguage: 'en',
           initialMessages: [
@@ -51,15 +96,24 @@ export default function N8nChatWidget({
             }
           }
         })
+        
+        console.log('n8n chat initialized successfully')
+        
       } catch (error) {
         console.error('Failed to initialize n8n chat widget:', error)
+        setChatError(`Chat initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
         showFallbackChat()
       }
     }
 
     const showFallbackChat = () => {
+      // Remove any existing fallback chats first
+      const existingFallbacks = document.querySelectorAll('.fallback-chat-button')
+      existingFallbacks.forEach(btn => btn.remove())
+      
       // Fallback: Show a simple message if the widget fails to load
       const fallbackDiv = document.createElement('div')
+      fallbackDiv.className = 'fallback-chat-button'
       fallbackDiv.innerHTML = `
         <div style="
           position: fixed;
@@ -77,30 +131,39 @@ export default function N8nChatWidget({
           transition: all 0.3s ease;
         ">
           🎣 Chat with Captain Catch
+          <br><small style="font-size: 10px; opacity: 0.8;">Connection issue detected</small>
         </div>
       `
+      
+      const button = fallbackDiv.firstElementChild as HTMLElement
+      
       fallbackDiv.onmouseover = () => {
-        const div = fallbackDiv.firstElementChild as HTMLElement
-        if (div) {
-          div.style.transform = 'scale(1.05)'
-          div.style.boxShadow = '0 6px 20px rgba(0, 102, 204, 0.4)'
+        if (button) {
+          button.style.transform = 'scale(1.05)'
+          button.style.boxShadow = '0 6px 20px rgba(0, 102, 204, 0.4)'
         }
       }
+      
       fallbackDiv.onmouseout = () => {
-        const div = fallbackDiv.firstElementChild as HTMLElement
-        if (div) {
-          div.style.transform = 'scale(1)'
-          div.style.boxShadow = '0 4px 12px rgba(0, 102, 204, 0.3)'
+        if (button) {
+          button.style.transform = 'scale(1)'
+          button.style.boxShadow = '0 4px 12px rgba(0, 102, 204, 0.3)'
         }
       }
+      
       fallbackDiv.onclick = () => {
-        alert('Chat is temporarily unavailable. Please contact us directly at (850) 555-FISH for assistance with your Gulf Coast seafood needs!')
+        const message = chatError 
+          ? `Chat is temporarily unavailable due to: ${chatError}\n\nPlease contact us directly at (850) 555-FISH for assistance with your Gulf Coast seafood needs!`
+          : 'Chat is temporarily unavailable. Please contact us directly at (850) 555-FISH for assistance with your Gulf Coast seafood needs!'
+        
+        alert(message)
       }
+      
       document.body.appendChild(fallbackDiv)
     }
 
-    // Small delay to ensure DOM is ready
-    setTimeout(initializeN8nChat, 100)
+    // Start with webhook test
+    testWebhook()
 
     // Cleanup function
     return () => {
@@ -109,7 +172,7 @@ export default function N8nChatWidget({
       existingChats.forEach(chat => chat.remove())
       
       // Remove fallback chat if it exists
-      const fallbackChats = document.querySelectorAll('div[style*="Chat with Captain Catch"]')
+      const fallbackChats = document.querySelectorAll('.fallback-chat-button')
       fallbackChats.forEach(chat => chat.remove())
     }
 
@@ -119,6 +182,42 @@ export default function N8nChatWidget({
     <>
       {/* Mount point for n8n chat widget */}
       <div id="n8n-chat"></div>
+      
+      {/* Loading indicator */}
+      {isLoading && (
+        <div style={{
+          position: 'fixed',
+          bottom: '20px',
+          right: '20px',
+          background: '#f3f4f6',
+          padding: '12px',
+          borderRadius: '8px',
+          fontSize: '12px',
+          color: '#6b7280',
+          zIndex: 999
+        }}>
+          Testing chat connection...
+        </div>
+      )}
+      
+      {/* Error indicator */}
+      {chatError && !isLoading && (
+        <div style={{
+          position: 'fixed',
+          bottom: '80px',
+          right: '20px',
+          background: '#fef2f2',
+          border: '1px solid #fecaca',
+          padding: '12px',
+          borderRadius: '8px',
+          fontSize: '12px',
+          color: '#dc2626',
+          maxWidth: '300px',
+          zIndex: 999
+        }}>
+          <strong>Chat Error:</strong> {chatError}
+        </div>
+      )}
       
       {/* Custom styles for the n8n chat widget */}
       <style jsx global>{`
