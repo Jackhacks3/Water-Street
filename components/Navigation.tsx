@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Menu, X, ShoppingCart, User, Search, Fish, Calendar, Building2, Book, Users, Phone } from 'lucide-react'
+import { Menu, X, ShoppingCart, User, Search, Fish, Calendar, Building2, Book, Users, Phone, Bell } from 'lucide-react'
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
@@ -84,156 +84,122 @@ export default function Navigation() {
     }
   }
 
+  const navigationItems = [
+    { name: 'Home', href: '/' },
+    { name: 'Products', href: '/products' },
+    { name: 'Live Inventory', href: '/inventory' },
+    { name: 'Subscriptions', href: '/subscriptions' },
+    { name: 'Recipes', href: '/recipes' },
+    { name: 'About', href: '/about' },
+    { name: 'Wholesale', href: '/wholesale' },
+    { name: 'Contact', href: '/contact' }
+  ]
+
+  const accountItems = [
+    { name: 'My Dashboard', href: '/dashboard' },
+    { name: 'Order History', href: '/dashboard?tab=orders' },
+    { name: 'Subscriptions', href: '/dashboard?tab=subscription' },
+    { name: 'Favorites', href: '/dashboard?tab=favorites' }
+  ]
+
   return (
-    <nav className="bg-white shadow-lg relative z-50">
+    <nav className="bg-white shadow-lg sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-16">
+        <div className="flex justify-between h-16">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <Fish className="h-8 w-8 text-ocean-600" />
-            <span className="text-xl font-display font-bold text-gray-900">
-              Water Street Seafood
-            </span>
-          </Link>
-
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center space-x-8">
-            {/* Products Mega Menu */}
-            <div
-              className="relative"
-              onMouseEnter={() => setActiveDropdown('products')}
-              onMouseLeave={() => setActiveDropdown(null)}
-            >
-              <Link
-                href="/products"
-                className="text-gray-700 hover:text-ocean-600 font-medium transition-colors"
-              >
-                Seafood
-              </Link>
-              
-              {activeDropdown === 'products' && (
-                <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 w-screen max-w-5xl bg-white shadow-xl rounded-lg border border-gray-200 p-8">
-                  <div className="grid grid-cols-4 gap-8">
-                    {megaMenuItems.products.sections.map((section, index) => (
-                      <div key={index}>
-                        <h3 className="text-sm font-semibold text-gray-900 mb-3">{section.title}</h3>
-                        <ul className="space-y-2">
-                          {section.items.map((item, itemIndex) => (
-                            <li key={itemIndex}>
-                              <Link
-                                href={item.href}
-                                className="text-sm text-gray-600 hover:text-ocean-600 transition-colors"
-                              >
-                                {item.name}
-                              </Link>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Seasonal Calendar */}
-            <Link
-              href="/seasonal-calendar"
-              className="text-gray-700 hover:text-ocean-600 font-medium transition-colors flex items-center space-x-1"
-            >
-              <Calendar className="h-4 w-4" />
-              <span>Seasonal</span>
-            </Link>
-
-            {/* Recipes */}
-            <Link
-              href="/recipes"
-              className="text-gray-700 hover:text-ocean-600 font-medium transition-colors flex items-center space-x-1"
-            >
-              <Book className="h-4 w-4" />
-              <span>Recipes</span>
-            </Link>
-
-            {/* Wholesale */}
-            <Link
-              href="/wholesale"
-              className="text-gray-700 hover:text-ocean-600 font-medium transition-colors flex items-center space-x-1"
-            >
-              <Building2 className="h-4 w-4" />
-              <span>Wholesale</span>
-            </Link>
-
-            {/* Resources Mega Menu */}
-            <div
-              className="relative"
-              onMouseEnter={() => setActiveDropdown('resources')}
-              onMouseLeave={() => setActiveDropdown(null)}
-            >
-              <button className="text-gray-700 hover:text-ocean-600 font-medium transition-colors">
-                Resources
-              </button>
-              
-              {activeDropdown === 'resources' && (
-                <div className="absolute top-full right-0 mt-2 w-96 bg-white shadow-xl rounded-lg border border-gray-200 p-6">
-                  <div className="grid grid-cols-1 gap-6">
-                    {megaMenuItems.resources.sections.map((section, index) => (
-                      <div key={index}>
-                        <h3 className="text-sm font-semibold text-gray-900 mb-3">{section.title}</h3>
-                        <ul className="space-y-2">
-                          {section.items.map((item, itemIndex) => (
-                            <li key={itemIndex}>
-                              <Link
-                                href={item.href}
-                                className="text-sm text-gray-600 hover:text-ocean-600 transition-colors"
-                              >
-                                {item.name}
-                              </Link>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* About */}
-            <Link
-              href="/about"
-              className="text-gray-700 hover:text-ocean-600 font-medium transition-colors"
-            >
-              About
+          <div className="flex items-center">
+            <Link href="/" className="flex items-center space-x-2">
+              <Fish className="h-8 w-8 text-ocean-600" />
+              <span className="text-2xl font-display font-bold text-gray-900">
+                Water Street Seafood
+              </span>
             </Link>
           </div>
 
-          {/* Right Side Actions */}
-          <div className="flex items-center space-x-4">
-            {/* Search */}
-            <button className="text-gray-600 hover:text-ocean-600 transition-colors">
-              <Search className="h-5 w-5" />
-            </button>
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-8">
+            {navigationItems.map((item) => (
+              <Link
+                key={item.name}
+                href={item.href}
+                className="text-gray-700 hover:text-ocean-600 px-3 py-2 text-sm font-medium transition-colors"
+              >
+                {item.name}
+              </Link>
+            ))}
+          </div>
 
-            {/* Account */}
-            <button className="text-gray-600 hover:text-ocean-600 transition-colors">
-              <User className="h-5 w-5" />
+          {/* Desktop Actions */}
+          <div className="hidden md:flex items-center space-x-4">
+            {/* Notifications */}
+            <button className="relative p-2 text-gray-600 hover:text-ocean-600 transition-colors">
+              <Bell className="h-5 w-5" />
+              <span className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full w-4 h-4 text-xs flex items-center justify-center">
+                2
+              </span>
             </button>
 
             {/* Cart */}
-            <Link
-              href="/cart"
-              className="text-gray-600 hover:text-ocean-600 transition-colors relative"
+            <Link 
+              href="/cart" 
+              className="relative p-2 text-gray-600 hover:text-ocean-600 transition-colors"
             >
               <ShoppingCart className="h-5 w-5" />
-              <span className="absolute -top-2 -right-2 bg-coral-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 bg-ocean-600 text-white rounded-full w-4 h-4 text-xs flex items-center justify-center">
                 3
               </span>
             </Link>
 
-            {/* Mobile menu button */}
+            {/* Account Dropdown */}
+            <div className="relative group">
+              <button className="flex items-center space-x-1 text-gray-700 hover:text-ocean-600 px-3 py-2 text-sm font-medium transition-colors">
+                <User className="h-4 w-4" />
+                <span>Account</span>
+              </button>
+              
+              {/* Dropdown Menu */}
+              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
+                <div className="py-1">
+                  {accountItems.map((item) => (
+                    <Link
+                      key={item.name}
+                      href={item.href}
+                      className="block px-4 py-2 text-sm text-gray-700 hover:bg-ocean-50 hover:text-ocean-600"
+                    >
+                      {item.name}
+                    </Link>
+                  ))}
+                  <hr className="my-1" />
+                  <Link
+                    href="/auth/login"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-ocean-50 hover:text-ocean-600"
+                  >
+                    Sign In
+                  </Link>
+                  <Link
+                    href="/auth/signup"
+                    className="block px-4 py-2 text-sm text-gray-700 hover:bg-ocean-50 hover:text-ocean-600"
+                  >
+                    Create Account
+                  </Link>
+                </div>
+              </div>
+            </div>
+
+            {/* CTA Button */}
+            <Link
+              href="/subscriptions"
+              className="bg-ocean-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-ocean-700 transition-colors"
+            >
+              Subscribe Now
+            </Link>
+          </div>
+
+          {/* Mobile menu button */}
+          <div className="md:hidden flex items-center">
             <button
               onClick={() => setIsOpen(!isOpen)}
-              className="md:hidden text-gray-600 hover:text-ocean-600 transition-colors"
+              className="text-gray-600 hover:text-ocean-600 transition-colors"
             >
               {isOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
             </button>
@@ -244,83 +210,68 @@ export default function Navigation() {
       {/* Mobile Navigation */}
       {isOpen && (
         <div className="md:hidden bg-white border-t border-gray-200">
-          <div className="px-4 py-6 space-y-4">
-            <Link
-              href="/products"
-              className="block text-gray-700 hover:text-ocean-600 font-medium transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              Seafood
-            </Link>
-            
-            <Link
-              href="/seasonal-calendar"
-              className="block text-gray-700 hover:text-ocean-600 font-medium transition-colors flex items-center space-x-2"
-              onClick={() => setIsOpen(false)}
-            >
-              <Calendar className="h-4 w-4" />
-              <span>Seasonal Calendar</span>
-            </Link>
-            
-            <Link
-              href="/recipes"
-              className="block text-gray-700 hover:text-ocean-600 font-medium transition-colors flex items-center space-x-2"
-              onClick={() => setIsOpen(false)}
-            >
-              <Book className="h-4 w-4" />
-              <span>Recipes</span>
-            </Link>
-            
-            <Link
-              href="/wholesale"
-              className="block text-gray-700 hover:text-ocean-600 font-medium transition-colors flex items-center space-x-2"
-              onClick={() => setIsOpen(false)}
-            >
-              <Building2 className="h-4 w-4" />
-              <span>Wholesale</span>
-            </Link>
-            
-            <Link
-              href="/about"
-              className="block text-gray-700 hover:text-ocean-600 font-medium transition-colors"
-              onClick={() => setIsOpen(false)}
-            >
-              About
-            </Link>
-
-            <div className="border-t border-gray-200 pt-4 space-y-4">
-              <h3 className="text-sm font-semibold text-gray-900">Quick Actions</h3>
+          <div className="px-2 pt-2 pb-3 space-y-1">
+            {navigationItems.map((item) => (
               <Link
-                href="/cart"
-                className="block text-gray-700 hover:text-ocean-600 font-medium transition-colors flex items-center space-x-2"
+                key={item.name}
+                href={item.href}
+                className="block px-3 py-2 text-gray-700 hover:text-ocean-600 hover:bg-ocean-50 rounded-md text-base font-medium transition-colors"
                 onClick={() => setIsOpen(false)}
               >
-                <ShoppingCart className="h-4 w-4" />
-                <span>Shopping Cart (3)</span>
+                {item.name}
               </Link>
-              <button className="block text-gray-700 hover:text-ocean-600 font-medium transition-colors flex items-center space-x-2">
-                <User className="h-4 w-4" />
-                <span>My Account</span>
-              </button>
-              <button className="block text-gray-700 hover:text-ocean-600 font-medium transition-colors flex items-center space-x-2">
-                <Phone className="h-4 w-4" />
-                <span>Contact Us</span>
-              </button>
+            ))}
+            
+            {/* Mobile Account Section */}
+            <div className="border-t border-gray-200 pt-3 mt-3">
+              <div className="px-3 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">
+                Account
+              </div>
+              {accountItems.map((item) => (
+                <Link
+                  key={item.name}
+                  href={item.href}
+                  className="block px-3 py-2 text-gray-700 hover:text-ocean-600 hover:bg-ocean-50 rounded-md text-base font-medium transition-colors"
+                  onClick={() => setIsOpen(false)}
+                >
+                  {item.name}
+                </Link>
+              ))}
+              <Link
+                href="/auth/login"
+                className="block px-3 py-2 text-gray-700 hover:text-ocean-600 hover:bg-ocean-50 rounded-md text-base font-medium transition-colors"
+                onClick={() => setIsOpen(false)}
+              >
+                Sign In
+              </Link>
+              <Link
+                href="/auth/signup"
+                className="block px-3 py-2 text-gray-700 hover:text-ocean-600 hover:bg-ocean-50 rounded-md text-base font-medium transition-colors"
+                onClick={() => setIsOpen(false)}
+              >
+                Create Account
+              </Link>
             </div>
 
-            <div className="border-t border-gray-200 pt-4">
-              <div className="bg-ocean-50 rounded-lg p-4">
-                <h4 className="text-sm font-semibold text-ocean-900 mb-2">Need Help?</h4>
-                <p className="text-xs text-ocean-700 mb-3">
-                  Call us for fresh catch updates and custom orders
-                </p>
-                <a
-                  href="tel:850-653-9419"
-                  className="text-sm font-medium text-ocean-600 hover:text-ocean-800"
-                >
-                  (850) 653-9419
-                </a>
-              </div>
+            {/* Mobile Actions */}
+            <div className="border-t border-gray-200 pt-3 mt-3 space-y-2">
+              <Link
+                href="/cart"
+                className="flex items-center justify-between px-3 py-2 text-gray-700 hover:text-ocean-600 hover:bg-ocean-50 rounded-md text-base font-medium transition-colors"
+                onClick={() => setIsOpen(false)}
+              >
+                <span>Shopping Cart</span>
+                <span className="bg-ocean-600 text-white rounded-full w-5 h-5 text-xs flex items-center justify-center">
+                  3
+                </span>
+              </Link>
+              <Link
+                href="/subscriptions"
+                className="block w-full text-center bg-ocean-600 text-white px-4 py-3 rounded-md text-base font-medium hover:bg-ocean-700 transition-colors"
+                onClick={() => setIsOpen(false)}
+              >
+                Subscribe Now
+              </Link>
             </div>
           </div>
         </div>
