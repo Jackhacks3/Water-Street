@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
+import N8nChatWidget from '@/components/N8nChatWidget'
 import { 
   User, Package, Calendar, Heart, Settings, CreditCard, 
   Truck, Star, Bell, MapPin, Edit, Download, Eye 
@@ -502,6 +503,7 @@ export default function DashboardPage() {
       </div>
 
       <Footer />
+      <N8nChatWidget />
     </div>
   )
 } 

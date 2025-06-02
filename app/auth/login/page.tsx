@@ -4,7 +4,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
-import { Eye, EyeOff, Fish, Mail, Lock, ArrowLeft } from 'lucide-react'
+import { Eye, EyeOff, Fish, Mail, Lock, ArrowLeft, CheckCircle, Truck, Star } from 'lucide-react'
+import N8nChatWidget from '@/components/N8nChatWidget'
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -204,6 +205,7 @@ export default function LoginPage() {
       </div>
 
       <Footer />
+      <N8nChatWidget />
     </div>
   )
 } 

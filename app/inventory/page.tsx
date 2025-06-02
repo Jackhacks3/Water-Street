@@ -2,6 +2,7 @@ import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
 import LiveInventory from '@/components/LiveInventory'
 import WeatherWidget from '@/components/WeatherWidget'
+import N8nChatWidget from '@/components/N8nChatWidget'
 
 export default function InventoryPage() {
   return (
@@ -32,6 +33,7 @@ export default function InventoryPage() {
       </div>
 
       <Footer />
+      <N8nChatWidget />
     </div>
   )
 } 

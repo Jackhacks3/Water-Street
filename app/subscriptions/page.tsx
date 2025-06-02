@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
+import N8nChatWidget from '@/components/N8nChatWidget'
 import { Check, Calendar, Truck, Repeat, Gift, Star, Clock, Users } from 'lucide-react'
 
 export default function SubscriptionsPage() {
@@ -405,6 +406,7 @@ export default function SubscriptionsPage() {
       </div>
 
       <Footer />
+      <N8nChatWidget />
     </div>
   )
 } 

@@ -1,0 +1,327 @@
+{
+  "name": "Captain Catch Chatbot",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "chatbot",
+        "responseMode": "responseNode",
+        "options": {
+          "allowedOrigins": "*"
+        }
+      },
+      "id": "webhook-1",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Process incoming message and extract relevant data\nconst incomingData = $input.first().json;\n\nconst userMessage = incomingData.message || '';\nconst conversationHistory = incomingData.conversationHistory || [];\nconst currentPage = incomingData.currentPage || '/';\nconst sessionId = incomingData.sessionId || 'default';\n\n// Extract keywords from user message\nconst keywords = userMessage.toLowerCase().match(/\\b\\w+\\b/g) || [];\n\n// Determine intent based on keywords\nlet intent = 'general';\nlet entities = [];\n\nif (keywords.some(word => ['fresh', 'today', 'available', 'stock', 'inventory'].includes(word))) {\n  intent = 'inventory_inquiry';\n}\nelse if (keywords.some(word => ['cook', 'recipe', 'prepare', 'grill', 'bake', 'fry'].includes(word))) {\n  intent = 'cooking_advice';\n}\nelse if (keywords.some(word => ['price', 'cost', 'order', 'buy', 'purchase'].includes(word))) {\n  intent = 'pricing_inquiry';\n}\nelse if (keywords.some(word => ['snapper', 'grouper', 'shrimp', 'crab', 'oyster', 'flounder'].includes(word))) {\n  intent = 'product_specific';\n  entities = keywords.filter(word => ['snapper', 'grouper', 'shrimp', 'crab', 'oyster', 'flounder'].includes(word));\n}\nelse if (keywords.some(word => ['nutrition', 'healthy', 'protein', 'omega'].includes(word))) {\n  intent = 'nutrition_inquiry';\n}\nelse if (keywords.some(word => ['shipping', 'delivery', 'transport'].includes(word))) {\n  intent = 'shipping_inquiry';\n}\nelse if (keywords.some(word => ['hello', 'hi', 'hey', 'greetings'].includes(word))) {\n  intent = 'greeting';\n}\n\nreturn {\n  userMessage,\n  conversationHistory,\n  currentPage,\n  sessionId,\n  intent,\n  entities,\n  keywords,\n  timestamp: new Date().toISOString()\n};"
+      },
+      "id": "code-1",
+      "name": "Process Message",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "intent-greeting",
+              "leftValue": "={{ $json.intent }}",
+              "rightValue": "greeting",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "intent-inventory",
+              "leftValue": "={{ $json.intent }}",
+              "rightValue": "inventory_inquiry",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "intent-cooking",
+              "leftValue": "={{ $json.intent }}",
+              "rightValue": "cooking_advice",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "intent-product",
+              "leftValue": "={{ $json.intent }}",
+              "rightValue": "product_specific",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "intent-pricing",
+              "leftValue": "={{ $json.intent }}",
+              "rightValue": "pricing_inquiry",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            },
+            {
+              "id": "intent-nutrition",
+              "leftValue": "={{ $json.intent }}",
+              "rightValue": "nutrition_inquiry",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "fallbackOutput": "extra"
+      },
+      "id": "switch-1",
+      "name": "Route by Intent",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Greeting Response\nconst greetings = [\n  \"Ahoy there! I'm Captain Catch, your Gulf Coast seafood expert! 🎣 What brings you to our waters today?\",\n  \"Welcome aboard! I'm Captain Catch. I've been working these Gulf waters for decades - how can I help you find the perfect seafood?\",\n  \"Ahoy! Captain Catch here, ready to help you navigate our fresh Gulf Coast offerings!\"\n];\n\nconst suggestions = [\n  \"What's fresh today?\",\n  \"Show me cooking tips\",\n  \"Tell me about your freshness guarantee\",\n  \"Help me plan dinner\"\n];\n\nreturn {\n  text: greetings[Math.floor(Math.random() * greetings.length)],\n  suggestions,\n  intent: 'greeting'\n};"
+      },
+      "id": "greeting-response",
+      "name": "Greeting Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 120]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Inventory Response with real-time data simulation\nconst currentHour = new Date().getHours();\nconst todaysCatch = [\n  { name: 'Gulf Red Snapper', price: 32.99, status: 'Premium Quality', quantity: Math.floor(Math.random() * 20) + 5 },\n  { name: 'Jumbo Gulf Shrimp', price: 24.99, status: 'Excellent', quantity: Math.floor(Math.random() * 30) + 10 },\n  { name: 'Gulf Grouper', price: 36.99, status: 'Premium Quality', quantity: Math.floor(Math.random() * 15) + 3 },\n  { name: 'Blue Crab', price: 8.99, status: 'Fresh Today', quantity: Math.floor(Math.random() * 40) + 20 },\n  { name: 'Apalachicola Oysters', price: 18.99, status: 'Just Harvested', quantity: Math.floor(Math.random() * 25) + 8 }\n];\n\nconst availableItems = todaysCatch.filter(item => item.quantity > 0);\n\nlet responseText = `🐟 Today's fresh catch looks fantastic! Here's what just came in:\\n\\n`;\navailableItems.forEach(item => {\n  responseText += `• **${item.name}** - $${item.price}/lb (${item.quantity} lbs available)\\n`;\n});\n\nresponseText += `\\n⚓ All caught within the last 24 hours with our \"From Boat to You in One Day\" guarantee!`;\n\nconst suggestions = [\n  \"Tell me about the snapper\",\n  \"What's good for grilling?\",\n  \"Show me cooking tips\",\n  \"Check shipping options\"\n];\n\nreturn {\n  text: responseText,\n  suggestions,\n  products: availableItems,\n  intent: 'inventory_inquiry'\n};"
+      },
+      "id": "inventory-response",
+      "name": "Inventory Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 220]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Cooking Advice Response\nconst userMessage = $input.first().json.userMessage.toLowerCase();\nlet responseText = \"🍳 I'd love to share some Gulf Coast cooking wisdom with you! \";\nlet suggestions = [];\n\nif (userMessage.includes('grill')) {\n  responseText += \"For grilling Gulf seafood:\\n\\n• Preheat grill to medium-high\\n• Lightly oil the grates\\n• For fish: 3-4 minutes per side for 1-inch thick fillets\\n• For shrimp: 2-3 minutes per side\\n• Keep it simple with lemon, herbs, and light seasoning!\";\n  suggestions = [\"Seasoning tips\", \"What about grouper?\", \"Show me recipes\", \"Grilling shellfish\"];\n} else if (userMessage.includes('pan') || userMessage.includes('sear')) {\n  responseText += \"Pan-searing creates a beautiful crust:\\n\\n• Heat oil in pan until shimmering\\n• Pat fish completely dry\\n• Season just before cooking\\n• Don't move the fish until it releases easily\\n• Finish with butter and herbs!\";\n  suggestions = [\"Oil recommendations\", \"Perfect doneness\", \"Sauce pairings\", \"Show me more techniques\"];\n} else {\n  responseText += \"What cooking method are you interested in? I've got techniques passed down from generations of Gulf fishermen!\";\n  suggestions = [\"Grilling techniques\", \"Pan-searing tips\", \"Baking methods\", \"Seasoning advice\"];\n}\n\nreturn {\n  text: responseText,\n  suggestions,\n  intent: 'cooking_advice'\n};"
+      },
+      "id": "cooking-response",
+      "name": "Cooking Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 320]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Product Specific Response\nconst entities = $input.first().json.entities || [];\nconst userMessage = $input.first().json.userMessage.toLowerCase();\n\nlet responseText = \"\";\nlet suggestions = [];\n\nif (entities.includes('snapper') || userMessage.includes('snapper')) {\n  responseText = \"🐠 Gulf Red Snapper is the crown jewel of our waters! Sweet, firm flesh with a delicate flavor that's perfect for any preparation. Our current batch was caught yesterday off the Panhandle - absolutely pristine quality at $32.99/lb.\\n\\nPerfect for grilling, baking, or pan-searing!\";\n  suggestions = [\"Add to cart\", \"Cooking suggestions\", \"Tell me about grouper\", \"Check availability\"];\n} else if (entities.includes('shrimp') || userMessage.includes('shrimp')) {\n  responseText = \"🦐 Our Gulf Shrimp are legendary! These beauties are sweet, plump, and perfect for everything from shrimp and grits to coconut shrimp. Current jumbo size at $24.99/lb - so fresh they practically jump off the ice!\";\n  suggestions = [\"Add to cart\", \"Shrimp recipes\", \"Size options\", \"Cooking time\"];\n} else if (entities.includes('grouper') || userMessage.includes('grouper')) {\n  responseText = \"🐟 Gulf Grouper is a chef's favorite! Mild, sweet flavor with firm, flaky texture. Premium quality at $36.99/lb. Perfect for those who want amazing seafood without a 'fishy' taste!\";\n  suggestions = [\"Add to cart\", \"Best cooking method\", \"Compare to snapper\", \"Check stock\"];\n} else if (entities.includes('oyster') || userMessage.includes('oyster')) {\n  responseText = \"🦪 Apalachicola Bay oysters - the best in the world! These beauties are briny, sweet, and perfect for raw bars or steamed. Fresh shucked daily at $18.99/dozen. Nothing beats Gulf oysters!\";\n  suggestions = [\"Add to cart\", \"Shucking tips\", \"Raw vs cooked\", \"Seasonal info\"];\n} else {\n  responseText = \"🐟 I'd love to tell you about any of our Gulf specialties! What specific seafood are you interested in?\";\n  suggestions = [\"Gulf Red Snapper\", \"Jumbo Shrimp\", \"Fresh Grouper\", \"Gulf Oysters\"];\n}\n\nreturn {\n  text: responseText,\n  suggestions,\n  intent: 'product_specific'\n};"
+      },
+      "id": "product-response",
+      "name": "Product Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 420]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Default/General Response\nconst fallbackResponses = [\n  \"🤔 I want to make sure I give you the best advice! Could you tell me a bit more about what you're looking for? I'm here to help with everything from selecting the perfect catch to cooking techniques!\",\n  \"⚓ As your Gulf Coast seafood expert, I'm here to help! What specific information can I provide about our fresh catches?\",\n  \"🎣 I've got decades of experience with Gulf seafood - what can I help you with today?\"\n];\n\nconst suggestions = [\n  \"What's the freshest today?\",\n  \"Help me choose for dinner\",\n  \"Cooking and preparation tips\",\n  \"Tell me about pricing\",\n  \"Nutritional information\",\n  \"Shipping details\"\n];\n\nreturn {\n  text: fallbackResponses[Math.floor(Math.random() * fallbackResponses.length)],\n  suggestions,\n  intent: 'general'\n};"
+      },
+      "id": "default-response",
+      "name": "Default Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 580]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Nutrition Response\nconst userMessage = $input.first().json.userMessage.toLowerCase();\n\nlet responseText = \"🥗 Gulf seafood is some of the healthiest protein you can eat! \";\n\nif (userMessage.includes('omega')) {\n  responseText += \"Rich in omega-3 fatty acids:\\n\\n• Salmon & Mackerel: 1,500-2,000mg per serving\\n• Snapper & Grouper: 300-500mg per serving\\n• Shrimp: 200-300mg per serving\\n\\nThese essential fats support heart and brain health!\";\n} else if (userMessage.includes('protein')) {\n  responseText += \"Excellent lean protein source:\\n\\n• Red Snapper: 25g protein, 1g fat per 4oz\\n• Grouper: 28g protein, 1.5g fat per 4oz\\n• Shrimp: 24g protein, 1g fat per 4oz\\n• Very low in calories and saturated fat!\";\n} else {\n  responseText += \"Packed with essential nutrients:\\n\\n• High-quality lean protein\\n• Omega-3 fatty acids\\n• Vitamin D, B12, and selenium\\n• Low in calories and saturated fat\\n• Perfect for healthy eating!\";\n}\n\nconst suggestions = [\n  \"Omega-3 content\",\n  \"Calorie information\", \n  \"Best for heart health\",\n  \"Cooking for diet\"\n];\n\nreturn {\n  text: responseText,\n  suggestions,\n  intent: 'nutrition_inquiry'\n};"
+      },
+      "id": "nutrition-response",
+      "name": "Nutrition Response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [900, 520]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}"
+      },
+      "id": "response-1",
+      "name": "Respond to Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1120, 300]
+    }
+  ],
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Process Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Message": {
+      "main": [
+        [
+          {
+            "node": "Route by Intent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Route by Intent": {
+      "main": [
+        [
+          {
+            "node": "Greeting Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Inventory Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Cooking Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Product Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Default Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Nutrition Response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Default Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Greeting Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Inventory Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Cooking Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Product Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Default Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Nutrition Response": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2024-01-15T10:00:00.000Z",
+  "versionId": "1"
+} 

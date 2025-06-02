@@ -8,7 +8,7 @@ import DailyCatch from '@/components/DailyCatch'
 import About from '@/components/About'
 import Testimonials from '@/components/Testimonials'
 import Footer from '@/components/Footer'
-import ChatBot from '@/components/ChatBot'
+import N8nChatWidget from '@/components/N8nChatWidget'
 import Link from 'next/link'
 import { Calendar, Building2, Book, ShoppingBag, Star, Clock, Truck, Shield, Phone, Award, Waves, ArrowRight } from 'lucide-react'
 import WeatherWidget from '@/components/WeatherWidget'
@@ -288,7 +288,7 @@ export default function Home() {
       </section>
 
       <Footer />
-      <ChatBot />
+      <N8nChatWidget />
     </main>
   )
 } 

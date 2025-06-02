@@ -4,7 +4,8 @@ import { useState } from 'react'
 import Link from 'next/link'
 import Navigation from '@/components/Navigation'
 import Footer from '@/components/Footer'
-import { Eye, EyeOff, Fish, Mail, Lock, User, Building, Phone, ArrowLeft } from 'lucide-react'
+import N8nChatWidget from '@/components/N8nChatWidget'
+import { Eye, EyeOff, Fish, Mail, Lock, User, Building, Phone, ArrowLeft, MapPin, CheckCircle, Star, Truck } from 'lucide-react'
 
 export default function SignupPage() {
   const [showPassword, setShowPassword] = useState(false)
@@ -369,6 +370,7 @@ export default function SignupPage() {
       </div>
 
       <Footer />
+      <N8nChatWidget />
     </div>
   )
 } 

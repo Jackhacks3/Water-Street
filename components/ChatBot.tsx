@@ -11,11 +11,11 @@ interface Message {
   suggestions?: string[]
 }
 
-interface ProductRecommendation {
-  name: string
-  price: number
-  image: string
-  reason: string
+interface N8nResponse {
+  text: string
+  suggestions?: string[]
+  products?: any[]
+  recommendations?: any[]
 }
 
 export default function ChatBot() {
@@ -24,6 +24,9 @@ export default function ChatBot() {
   const [inputText, setInputText] = useState('')
   const [isTyping, setIsTyping] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+
+  // n8n webhook URL - you'll need to replace this with your actual n8n webhook URL
+  const N8N_WEBHOOK_URL = process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL || 'http://localhost:5678/webhook/chatbot'
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' })
@@ -72,129 +75,121 @@ export default function ChatBot() {
     setMessages(prev => [...prev, message])
   }
 
-  const getBotResponse = (userInput: string): { text: string; suggestions?: string[] } => {
+  const sendToN8n = async (userInput: string, conversationHistory: Message[]): Promise<N8nResponse> => {
+    try {
+      const response = await fetch(N8N_WEBHOOK_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          message: userInput,
+          conversationHistory: conversationHistory.slice(-5), // Send last 5 messages for context
+          timestamp: new Date().toISOString(),
+          sessionId: 'session_' + Date.now(), // You might want to implement proper session management
+          userAgent: navigator.userAgent,
+          currentPage: window.location.pathname
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const data = await response.json()
+      return data
+    } catch (error) {
+      console.error('Error sending message to n8n:', error)
+      
+      // Fallback to local responses if n8n is unavailable
+      return getFallbackResponse(userInput)
+    }
+  }
+
+  const getFallbackResponse = (userInput: string): N8nResponse => {
     const input = userInput.toLowerCase()
 
-    // Greetings
+    // Simplified fallback responses when n8n is unavailable
     if (input.includes('hello') || input.includes('hi') || input.includes('hey')) {
       return {
-        text: "Ahoy there! Welcome aboard! I'm Captain Catch, and I've been working these Gulf waters for years. What brings you to our shores today?",
-        suggestions: ["Show me today's catch", "I need cooking advice", "Tell me about freshness"]
+        text: "Ahoy there! Welcome aboard! I'm Captain Catch. I'm having trouble connecting to my full knowledge base right now, but I can still help with basic seafood questions!",
+        suggestions: ["What's available?", "Cooking tips", "Tell me about freshness"]
       }
     }
 
-    // Fresh catch inquiries
     if (input.includes('fresh') || input.includes('today') || input.includes('available')) {
       return {
-        text: "🐟 Today's fresh catch is spectacular! We've got beautiful Gulf Red Snapper that came in this morning, sweet Jumbo Shrimp, and some prime Grouper. The boats brought in fantastic Blue Crab too! All caught within the last 24 hours. What type of seafood are you interested in?",
-        suggestions: ["Tell me about the snapper", "What's good for grilling?", "Show me shellfish"]
+        text: "🐟 We typically have fresh Gulf Red Snapper, Jumbo Shrimp, and Gulf Grouper available daily! For real-time inventory, check our Live Inventory page. I'm currently running in offline mode, so I can't check our exact current stock.",
+        suggestions: ["View Live Inventory", "Tell me about shipping", "Cooking advice"]
       }
     }
 
-    // Cooking advice
     if (input.includes('cook') || input.includes('recipe') || input.includes('prepare')) {
       return {
-        text: "🍳 Ah, a fellow seafood chef! I've got plenty of cooking wisdom to share. What type of seafood are you working with? I can give you cooking times, temperatures, and my secret techniques passed down from generations of Gulf fishermen!",
-        suggestions: ["Grilling techniques", "Pan-searing tips", "Seasoning advice"]
+        text: "🍳 I'd love to help with cooking advice! While my full recipe database is temporarily unavailable, I can share that Gulf seafood is best cooked simply - light seasoning, don't overcook, and let the natural flavors shine!",
+        suggestions: ["Grilling tips", "Pan-searing basics", "Seasoning advice"]
       }
     }
 
-    // Nutritional information
-    if (input.includes('nutrition') || input.includes('healthy') || input.includes('protein')) {
-      return {
-        text: "🥗 Gulf seafood is some of the healthiest protein you can eat! Rich in omega-3s, lean protein, and essential minerals. Red Snapper has about 25g protein per serving, Shrimp is incredibly low-calorie, and our Oysters are packed with zinc. What specific nutritional info do you need?",
-        suggestions: ["Omega-3 content", "Calorie information", "Best for diet"]
-      }
-    }
-
-    // Freshness and quality
-    if (input.includes('freshness') || input.includes('quality') || input.includes('caught')) {
-      return {
-        text: "⚓ That's what sets us apart! Our 'From Boat to You in One Day' promise means everything you get was swimming in the Gulf less than 24 hours ago. We work directly with local fishing boats and maintain a perfect cold chain. You can actually taste the difference!",
-        suggestions: ["How do you maintain freshness?", "Tell me about your boats", "Storage tips"]
-      }
-    }
-
-    // Specific seafood types
-    if (input.includes('snapper')) {
-      return {
-        text: "🐠 Gulf Red Snapper is the crown jewel of our waters! Sweet, firm flesh with a delicate flavor. Perfect for grilling, baking, or pan-searing. Our current batch was caught off the Panhandle yesterday - absolutely pristine quality at $32.99/lb. Want me to add some to your cart?",
-        suggestions: ["Add to cart", "Cooking suggestions", "Tell me about grouper"]
-      }
-    }
-
-    if (input.includes('shrimp')) {
-      return {
-        text: "🦐 Our Gulf Shrimp are legendary! These beauties are sweet, plump, and perfect for everything from shrimp and grits to coconut shrimp. We've got jumbo size at $24.99/lb - they're so fresh they practically jump off the ice! Great for quick weeknight dinners.",
-        suggestions: ["Add shrimp to cart", "Shrimp recipes", "Size options"]
-      }
-    }
-
-    if (input.includes('oyster')) {
-      return {
-        text: "🦪 Apalachicola Bay oysters - the best in the world! These beauties are briny, sweet, and perfect for raw bars or steamed. Fresh shucked daily at $18.99/dozen. Nothing beats Gulf oysters for that authentic coastal experience!",
-        suggestions: ["Add oysters to cart", "Shucking tips", "Raw vs cooked"]
-      }
-    }
-
-    // Dinner planning
-    if (input.includes('dinner') || input.includes('meal') || input.includes('plan')) {
-      return {
-        text: "🍽️ Let me help you plan the perfect seafood dinner! Tell me: How many people are you cooking for? Do you prefer grilled, baked, or pan-seared? Any dietary restrictions? I'll recommend the perfect combination from today's catch!",
-        suggestions: ["Dinner for 4 people", "Quick weeknight meal", "Special occasion"]
-      }
-    }
-
-    // Pricing and ordering
-    if (input.includes('price') || input.includes('cost') || input.includes('order')) {
-      return {
-        text: "💰 Our prices reflect the premium quality of day-boat fresh seafood. Red Snapper $32.99/lb, Jumbo Shrimp $24.99/lb, Grouper $28.99/lb, Oysters $18.99/dozen. Free shipping on orders over $75! Want me to help you build an order?",
-        suggestions: ["Build my order", "Tell me about shipping", "Bulk pricing"]
-      }
-    }
-
-    // Sustainability
-    if (input.includes('sustainable') || input.includes('environment') || input.includes('fishing')) {
-      return {
-        text: "🌊 Sustainability is in our DNA! We work exclusively with local fishermen who use responsible fishing practices. Our Gulf waters are carefully managed, and we follow all seasonal restrictions to ensure healthy fish populations for generations to come.",
-        suggestions: ["Tell me more about practices", "Seasonal availability", "Local partnerships"]
-      }
-    }
-
-    // Default response with helpful suggestions
+    // Default fallback
     return {
-      text: "🤔 I want to make sure I give you the best advice! Could you tell me a bit more about what you're looking for? I'm here to help with everything from selecting the perfect catch to cooking techniques!",
+      text: "I'm currently running in limited mode and may not have access to all my seafood expertise. For the best experience, please check our Live Inventory page or contact us directly. Is there anything specific about Gulf Coast seafood I can help with?",
       suggestions: [
-        "What's the freshest today?",
-        "Help me choose for dinner",
-        "Cooking and preparation tips",
-        "Nutritional information"
+        "View Live Inventory",
+        "Contact Us", 
+        "Browse Products",
+        "Learn About Freshness"
       ]
     }
   }
 
-  const handleSendMessage = () => {
+  const handleSendMessage = async () => {
     if (!inputText.trim()) return
 
     addUserMessage(inputText)
+    const currentInput = inputText
     setInputText('')
     setIsTyping(true)
 
-    // Simulate typing delay
-    setTimeout(() => {
-      const response = getBotResponse(inputText)
-      addBotMessage(response.text, response.suggestions)
-    }, 1000 + Math.random() * 1000)
+    try {
+      const response = await sendToN8n(currentInput, messages)
+      
+      // Simulate some processing time
+      setTimeout(() => {
+        addBotMessage(response.text, response.suggestions)
+      }, 800 + Math.random() * 1200)
+      
+    } catch (error) {
+      console.error('Error getting response:', error)
+      setTimeout(() => {
+        addBotMessage(
+          "I'm having trouble processing your request right now. Please try again in a moment, or contact us directly for immediate assistance!",
+          ["Try again", "Contact support", "View products"]
+        )
+      }, 1000)
+    }
   }
 
-  const handleSuggestionClick = (suggestion: string) => {
+  const handleSuggestionClick = async (suggestion: string) => {
     addUserMessage(suggestion)
     setIsTyping(true)
 
-    setTimeout(() => {
-      const response = getBotResponse(suggestion)
-      addBotMessage(response.text, response.suggestions)
-    }, 800 + Math.random() * 800)
+    try {
+      const response = await sendToN8n(suggestion, messages)
+      
+      setTimeout(() => {
+        addBotMessage(response.text, response.suggestions)
+      }, 600 + Math.random() * 800)
+      
+    } catch (error) {
+      console.error('Error getting response:', error)
+      setTimeout(() => {
+        addBotMessage(
+          "I'm having trouble processing that request. Please try again or contact us directly!",
+          ["Try again", "Contact support"]
+        )
+      }, 800)
+    }
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -336,7 +331,7 @@ export default function ChatBot() {
         </div>
         <p className="text-xs text-gray-500 mt-2 text-center">
           <MapPin className="inline h-3 w-3 mr-1" />
-          Powered by Gulf Coast expertise
+          Powered by Gulf Coast expertise & n8n automation
         </p>
       </div>
     </div>
