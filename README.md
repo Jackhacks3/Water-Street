@@ -202,3 +202,54 @@ This project is proprietary software for Water Street Seafood. All rights reserv
 ---
 
 *Built with 💙 for the Gulf Coast fishing community* 
+
+## 🌐 **Access Your Static Website Here:**
+
+**URL:** `http://localhost:8080`
+
+Simply open your web browser and navigate to `http://localhost:8080` to view your static HTML website.
+
+## 📋 **Why Direct File Opening Doesn't Work:**
+
+When you try to open HTML files directly in your browser (double-clicking or file:// URLs), they fail because:
+
+1. **JavaScript modules** don't load with `file://` protocol
+2. **CORS restrictions** block many modern web features
+3. **Relative paths** may not resolve correctly
+4. **Modern CSS/JS** requires HTTP protocol to function
+
+## 🔧 **Alternative Methods to Start Local Server:**
+
+If the current server stops working, you can restart it with any of these methods:
+
+### **Method 1: Using npx serve**
+```bash
+cd out
+npx serve . -p 8080
+```
+
+### **Method 2: Using Python (if installed)**
+```bash
+cd out
+python -m http.server 8080
+```
+
+### **Method 3: Using PHP (if installed)**
+```bash
+cd out
+php -S localhost:8080
+```
+
+## 📁 **Your Static Files Structure:**
+- **Main page:** `out/index.html`
+- **About page:** `out/about/index.html`
+- **Products:** `out/products/index.html`
+- **All other pages** are in their respective folders
+
+## ⚡ **What You'll See:**
+✅ Complete Jack Gewirz seafood website  
+✅ Professional design and layout  
+✅ All pages working (navigation, content, etc.)  
+⚠️ Captain Catch bot will show a fallback message (API doesn't work in static mode)
+
+Your static HTML website should now be fully viewable at **`http://localhost:8080`**! 🚀 

@@ -20,6 +20,7 @@ export default function N8nChatWidget({
 }: N8nChatWidgetProps) {
   const [chatError, setChatError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [useFallback, setUseFallback] = useState(false)
   
   useEffect(() => {
     // Test webhook connectivity first
@@ -33,7 +34,7 @@ export default function N8nChatWidget({
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            chatInput: 'test connection',
+            message: 'test connection',
             sessionId: 'test-session'
           })
         })
@@ -52,8 +53,9 @@ export default function N8nChatWidget({
         
       } catch (error) {
         console.error('Webhook test failed:', error)
-        setChatError(`Webhook connection failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
-        showFallbackChat()
+        console.log('Falling back to local API endpoint')
+        setUseFallback(true)
+        initializeFallbackChat()
       } finally {
         setIsLoading(false)
       }
@@ -74,7 +76,7 @@ export default function N8nChatWidget({
           },
           target: '#n8n-chat',
           mode: 'window',
-          chatInputKey: 'chatInput',
+          chatInputKey: 'message',
           chatSessionKey: 'sessionId',
           metadata: {
             source: 'water-street-seafood'
@@ -101,12 +103,61 @@ export default function N8nChatWidget({
         
       } catch (error) {
         console.error('Failed to initialize n8n chat widget:', error)
-        setChatError(`Chat initialization failed: ${error instanceof Error ? error.message : 'Unknown error'}`)
-        showFallbackChat()
+        console.log('Falling back to local API endpoint')
+        setUseFallback(true)
+        initializeFallbackChat()
       }
     }
 
-    const showFallbackChat = () => {
+    // Function to initialize fallback chat using local API
+    const initializeFallbackChat = () => {
+      console.log('Initializing fallback chat with local API')
+      
+      try {
+        createChat({
+          webhookUrl: '/api/chat',
+          webhookConfig: {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          },
+          target: '#n8n-chat',
+          mode: 'window',
+          chatInputKey: 'message',
+          chatSessionKey: 'sessionId',
+          metadata: {
+            source: 'water-street-seafood-local'
+          },
+          showWelcomeScreen: true,
+          defaultLanguage: 'en',
+          initialMessages: [
+            'Ahoy! I\'m Captain Catch 🎣',
+            'I\'m your Gulf Coast seafood expert, running on backup systems.',
+            'How can I help you today?'
+          ],
+          i18n: {
+            en: {
+              title: 'Captain Catch - Seafood Expert 🎣',
+              subtitle: 'Ask me about fresh Gulf Coast seafood, cooking tips, and more!',
+              footer: 'Water Street Seafood - Fresh from the Gulf (Local Mode)',
+              getStarted: 'Start Chatting',
+              inputPlaceholder: 'Ask Captain Catch about fresh seafood...',
+              closeButtonTooltip: 'Close chat'
+            }
+          }
+        })
+        
+        console.log('Fallback chat initialized successfully')
+        
+      } catch (error) {
+        console.error('Failed to initialize fallback chat:', error)
+        setChatError(`Chat system unavailable: ${error instanceof Error ? error.message : 'Unknown error'}`)
+        showFallbackButton()
+      }
+    }
+
+    const showFallbackButton = () => {
       // Remove any existing fallback chats first
       const existingFallbacks = document.querySelectorAll('.fallback-chat-button')
       existingFallbacks.forEach(btn => btn.remove())
